@@ -2,6 +2,12 @@
   <div class="dashboard-container">
     <div class="app-container">
       <el-card>
+        <el-row>
+          <el-col>  
+            <el-button @click="$router.push('/questions/new')" type="primary" size="mini">新增试题</el-button>
+            <el-button type="danger" size="mini">批量导入</el-button>
+          </el-col>
+        </el-row>
         <el-row :gutter="20">
           <el-col :span="6">学&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;科：
             <el-select v-model="searchForm.subjectID" class="wd">
@@ -138,10 +144,12 @@
            ></el-table-column>
           <el-table-column label="录入人" prop="creator"></el-table-column>
           <el-table-column label="操作" width="200">
-            <a href="#">预览</a>
-            <a href="#">修改</a>
-            <a href="#">删除</a>
-            <a href="#">加入精选</a>
+            <template slot-scope="stData">
+              <a href="#">预览</a>
+              <a href="#">修改</a>
+              <a href="#" @click.prevent="del(stData.row)">删除</a>
+              <a href="#">加入精选</a>
+            </template>
           </el-table-column>
         </el-table>
       </el-card>
@@ -150,7 +158,7 @@
 </template>
 
 <script>
-import {list} from '@/api/hmmm/questions.js'
+import {list, remove} from '@/api/hmmm/questions.js'
 import {provinces, citys} from '@/api/hmmm/citys.js'
 import {simple as simpleDirectorys} from '@/api/hmmm/directorys.js'
 import {simple as simpleUsers} from '@/api/base/users.js'
@@ -205,6 +213,21 @@ export default {
     }
   },
   methods: {
+    provinces,
+    citys,
+    del(question) {
+      this.$confirm('确认删除该记录吗？', '删除', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'waring'
+        })
+          .then(async () => {
+            let res = await remove(question)
+            this.$message.success('删除成功')
+            this.getQuestionList()
+          })
+          .catch(() => {})
+    },
     difficultyFMT (row, column, cellValue, index) {
       return this.difficultyList[cellValue - 1].label
     },
@@ -216,8 +239,6 @@ export default {
       console.log(res)
       this.questionList = res.data.items
     },
-    provinces,
-    citys,
     async getCatalogIDList() {
       const res = await simpleDirectorys()
       // console.log(res)
